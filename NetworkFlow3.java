@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Vector;
 import java.io.File;
+import java.lang.Math;
 
 //Do not change the name of the NetworkFlow class
 public class NetworkFlow3{
@@ -63,7 +64,11 @@ public class NetworkFlow3{
 		int sum = 0; 
 		do{
 			flow = dfs(G, 0, Integer.MAX_VALUE);
+			Arrays.fill(visited, false);
+
+			
 			sum+=flow;
+		
 		}		
 
 
@@ -89,22 +94,27 @@ public class NetworkFlow3{
 		visited[curr] = true;		
 		int residualFlow;
 		for(int i=0; i<capacity.length; i++){
-			if(visited[i]==false && capacity[curr][i]-flowNetwork[curr][i]>0){
+			if(visited[i]==false && capacity[curr][i]>0){
 				System.out.println("vertex("+curr+", "+ i+") has capacity:"+capacity[curr][i]);
 
-				residualFlow = capacity[curr][i] - flowNetwork[curr][i];
-				if(currmin>residualFlow)
-					currmin = residualFlow; //this is the current bottleneck.
+//				residualFlow = capacity[curr][i] - flowNetwork[curr][i];
 
-				int bottleneck = dfs(capacity, i, currmin); //bottleneck will be returned from when we reach path
+
+
+				//if(currmin>residualFlow)
+					//currmin = residualFlow; //this is the current bottleneck.
+
+				int bottleneck = dfs(capacity, i, Math.min(currmin,capacity[curr][i])); //bottleneck will be returned from when we reach path
 														// now that we have bottleneck, adjust flow network.
 				if(bottleneck>0){
+					capacity[curr][i] -=bottleneck;
 					flowNetwork[curr][i] += bottleneck;
 					flowNetwork[i][curr] -= bottleneck;
+					capacity[i][curr] += bottleneck;
+
 				}
 				System.out.println(bottleneck + " ");
-
-
+//tiome to messs
 
 			}
 
