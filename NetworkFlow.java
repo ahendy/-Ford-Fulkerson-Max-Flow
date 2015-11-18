@@ -35,9 +35,11 @@ import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Vector;
 import java.io.File;
+import java.util.LinkedList;
+import java.util.Queue;
 
 //Do not change the name of the NetworkFlow class
-public class NetworkFlow3{
+public class NetworkFlow{
 
 	/* MaxFlow(G)
 	   Given an adjacency matrix describing the structure of a graph and the 
@@ -47,81 +49,171 @@ public class NetworkFlow3{
 	   across the edge (i,j).
 	*/
 
-	public static boolean[] visited;
-	public static int[][] flowNetwork; 
-	static int[][] MaxFlow(int[][] G){
-		int numVerts = G.length;
-		visited = new boolean[numVerts];
-		flowNetwork = new int[numVerts][numVerts]; //initialize array
-		for(int[] row: flowNetwork){ //initialize flow network to 0
-			Arrays.fill(row, 0);
-		}
-		Arrays.fill(visited, false);
-		
-
-		int flow =0;
-		int sum = 0; 
-		do{
-			flow = dfs(G, 0, Integer.MAX_VALUE);
-			sum+=flow;
-		}		
-
-
-		while(flow!=0);	
-		
-					System.out.println("THE FLOW OF THIS NETWROK IS: "+ sum );
-
-
-		for(int[] a:flowNetwork){
-			System.out.println("");
-			for(int b: a)
-				System.out.print(b + " ");
 	
+	public static int[][] flow;
+	static int[][] MaxFlow(int[][] G){
+		
+		int numVerts = G.length;
+		flow  = new int[numVerts][numVerts];
+		
+		for(int i = 0; i<numVerts;i++)
+			for(int j = 0; j<numVerts;j++){
+				flow[i][j] = 0;
 			}
-		return flowNetwork;
+		
+		//Arrays.fill(visited, false);
+		//Arrays.fill(parent, -1);
+//
+		while( true ){
+			
+			boolean[] visited = new boolean[numVerts];
+			int[] parent = new int[numVerts];
+
+			parent[0] = -2;
+			Queue<Integer> q;
+			q = new LinkedList<Integer>();
+			//LinkedList<Integer> q = new LinkedList<Integer>();
+
+			//boolean[] visited = new boolean[flow.length];
+
+			q.add(0);
+			visited[0] = true;
+			while(q.peek()!=null && !visited[1]){
+				int u = q.remove(); // next edge to use. starts at [0][0].
+				//System.out.println(q);
+				
+
+				//System.out.println("THIS IS Q" + q);
+				//System.out.println("PEEK: "+ q.peek());
+
+				for(int i = 0; i<numVerts;i++){
+
+					if(!visited[i]){
+						if(G[u][i]-flow[u][i]>0 /*|| flow[i][u] >0 */){
+
+
+
+						//System.out.println("a neighbour of q, ("+u+ ") is" + i);
+
+						visited[i]= true;
+						parent[i]= u;
+						q.add(i);
+						/*if(i== 1){
+							augment(parent,G);
+							visited[i] = false;	
+							parent[i] = -1;
+							q.remove(1);
+						}*/
+							
+						//System.out.println("THIS IS Q" + q);
+
+					
+
+
+						}
+						
+					}
+
+				}
+
+
+			}
+
+
+
+
+			if(!visited[1]) break; //no augmenting path, othewise:
+
+			augment(parent,G);
+		} //endwhile
+
+
+
+
+		return flow;
 		
 	}
 
 
-	public static int dfs(int[][] capacity, int curr, int currmin){
-		if(curr == 1) return currmin;   // we have found a path, return the min value.
+	public static void augment(int[] parent,int[][] G){
+
+			int v = 1;
+			int curMax = Integer.MAX_VALUE;
+			while(v!=0){
+
+				int p = parent[v];
+				//System.out.print("("+p+","+v+")");
+				if(flow[v][p]>0){//backedge
+					curMax = curMax<flow[v][p] ? curMax:flow[v][p];
+					
+				} else{//forward
+					int resid = G[p][v] - flow[p][v];
+					//System.out.println("residual: "+resid);
+						curMax = curMax <resid? curMax:resid;
+				}
+				//System.out.print(curMax+ " ");
+
+
+
+				v = p;
+			}
+				
+			//System.out.println("this is the bottleneck cap: "+curMax);
+
+
+			v = 1;
+			while(v!=0){
+
+				int p = parent[v];
+				if(flow[v][p]>0){//backedge
+					flow[v][p] -= curMax;
+
+					
+				} else{//forward
+					flow[p][v] += curMax;
+
+				}
+
+
+
+				v = p; //travel through parent nodes
+			}
+
+
+
+		/*	for(int[] a: flow){
+				System.out.println("");
+				for(int b:a)
+					System.out.print(b+ " ");
+
+
+			}*/
+
+
+
+	}
+
+	/*public static boolean BFS(int[][] flow,Vector<Integer> parent){
+
 		
-		visited[curr] = true;		
-		int residualFlow;
-		for(int i=0; i<capacity.length; i++){
-			if(visited[i]==false && capacity[curr][i]>flowNetwork[curr][i]){
-				System.out.println("vertex("+curr+", "+ i+") has capacity:"+capacity[curr][i]);
+		
 
 
 
 
+		while(q.peek() != null){ //standard BFS (WHILE AUGMENTED PATH EXISTS)
 
 
-				residualFlow = capacity[curr][i] - flowNetwork[curr][i];
+			
 
+			// sink is [0][1]
+			for(int i = 0; i<flow.length; i++){ // traverse through neigbours of u
+					if(flow[u][i] > 0 && visited[i] ==false){
 
-				if(flowNetwork[i][curr]>0)
-					currmin = Math.min(currmin, flowNetwork[i][curr]);
-				else
-					currmin = Math.min(currmin, residualFlow); //this is the current bottleneck.
-
-				
-
-				int bottleneck = dfs(capacity, i, currmin); //bottleneck will be returned from when we reach path
-														// now that we have bottleneck, adjust flow network.
-				
-
-
-
-				if(flowNetwork[i][curr]>0)
-					flowNetwork[i][curr] -= bottleneck;
-					//flowNetwork[i][curr] -= bottleneck;
-				else
-					flowNetwork[curr][i] += bottleneck;
-				
-
-
-				System.out.println(bottleneck + " ");
+						q.add(i);
+						visited[i] = true;
+						//parent.set(i, u);  //set index i's parent to u
+					}	
 
 
 
@@ -131,10 +223,10 @@ public class NetworkFlow3{
 
 
 		}
+		if(visited[1] ==true) return true;
+		return false;
 
-		return 0; //no more paths.
-
-	}
+	}*/
 	
 	
 	public static boolean verifyFlow(int[][] G, int[][] flow){
