@@ -59,76 +59,36 @@ public class NetworkFlow{
 		for(int i = 0; i<numVerts;i++)
 			for(int j = 0; j<numVerts;j++){
 				flow[i][j] = 0;
-			}
-		
-		//Arrays.fill(visited, false);
-		//Arrays.fill(parent, -1);
-//
+		}
+
 		while( true ){
 			
-			boolean[] visited = new boolean[numVerts];
-			int[] parent = new int[numVerts];
+			boolean[] visited 	= new boolean[numVerts];
+			int[] parent 		= new int[numVerts];
 
 			parent[0] = -2;
-			Queue<Integer> q;
-			q = new LinkedList<Integer>();
-			//LinkedList<Integer> q = new LinkedList<Integer>();
-
-			//boolean[] visited = new boolean[flow.length];
-
+			Queue<Integer> q = new LinkedList<Integer>();
 			q.add(0);
 			visited[0] = true;
-			while(q.peek()!=null && !visited[1]){
+			
+			while(q.peek()!=null && !visited[1]){   // begin standard BFS, find augmenting paths, if exists then update and keep going
 				int u = q.remove(); // next edge to use. starts at [0][0].
-				//System.out.println(q);
-				
-
-				//System.out.println("THIS IS Q" + q);
-				//System.out.println("PEEK: "+ q.peek());
 
 				for(int i = 0; i<numVerts;i++){
-
 					if(!visited[i]){
 						if(G[u][i]-flow[u][i]>0 /*|| flow[i][u] >0 */){
-
-
-
-						//System.out.println("a neighbour of q, ("+u+ ") is" + i);
-
-						visited[i]= true;
-						parent[i]= u;
-						q.add(i);
-						/*if(i== 1){
-							augment(parent,G);
-							visited[i] = false;	
-							parent[i] = -1;
-							q.remove(1);
-						}*/
-							
-						//System.out.println("THIS IS Q" + q);
-
-					
-
-
+							visited[i]= true;
+							parent[i]= u;
+							q.add(i);
 						}
-						
+		
 					}
-
 				}
-
-
 			}
-
-
-
-
 			if(!visited[1]) break; //no augmenting path, othewise:
 
 			augment(parent,G);
 		} //endwhile
-
-
-
 
 		return flow;
 		
@@ -140,93 +100,34 @@ public class NetworkFlow{
 			int v = 1;
 			int curMax = Integer.MAX_VALUE;
 			while(v!=0){
-
 				int p = parent[v];
-				//System.out.print("("+p+","+v+")");
+				
 				if(flow[v][p]>0){//backedge
 					curMax = curMax<flow[v][p] ? curMax:flow[v][p];
 					
 				} else{//forward
 					int resid = G[p][v] - flow[p][v];
-					//System.out.println("residual: "+resid);
-						curMax = curMax <resid? curMax:resid;
+						curMax = curMax < resid? curMax:resid;
 				}
-				//System.out.print(curMax+ " ");
-
-
-
 				v = p;
 			}
-				
-			//System.out.println("this is the bottleneck cap: "+curMax);
-
-
+	
 			v = 1;
 			while(v!=0){
-
 				int p = parent[v];
 				if(flow[v][p]>0){//backedge
 					flow[v][p] -= curMax;
 
-					
 				} else{//forward
 					flow[p][v] += curMax;
 
 				}
 
-
-
 				v = p; //travel through parent nodes
 			}
-
-
-
-		/*	for(int[] a: flow){
-				System.out.println("");
-				for(int b:a)
-					System.out.print(b+ " ");
-
-
-			}*/
-
-
-
 	}
 
-	/*public static boolean BFS(int[][] flow,Vector<Integer> parent){
-
-		
-		
-
-
-
-
-		while(q.peek() != null){ //standard BFS (WHILE AUGMENTED PATH EXISTS)
-
-
-			
-
-			// sink is [0][1]
-			for(int i = 0; i<flow.length; i++){ // traverse through neigbours of u
-					if(flow[u][i] > 0 && visited[i] ==false){
-
-						q.add(i);
-						visited[i] = true;
-						//parent.set(i, u);  //set index i's parent to u
-					}	
-
-
-
-			}
-
-
-
-
-		}
-		if(visited[1] ==true) return true;
-		return false;
-
-	}*/
+	
 	
 	
 	public static boolean verifyFlow(int[][] G, int[][] flow){
